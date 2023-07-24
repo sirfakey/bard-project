@@ -1,0 +1,14 @@
+audiorecorder
+Bard
+bardapi
+bokeh
+deepface
+numpy
+openai_whisper
+playsound
+pyttsx3
+SpeechRecognition
+streamlit
+streamlit_audiorecorder
+streamlit_bokeh_events
+whisper

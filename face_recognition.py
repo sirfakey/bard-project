@@ -3,7 +3,6 @@ from deepface import DeepFace
 import streamlit as st
 import os
 from audiorecorder import audiorecorder
-import speech_recognition as sr
 import whisper
 import re
 import openai
@@ -17,12 +16,10 @@ openai.api_key = "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"
 
 token = 'ZgiXs83PvL_oThtEb185bFzrfHqu8qch0x5mU3TtRzMu1FvX9Hrv6XWLyi__T2E2_fPorw.'
 
-r = sr.Recognizer()
-
 with st.sidebar.expander("**About**"):
   st.write('Freya is an interactive voice assistant based on Bard by Google. Freya was designed to help students of all classes.')
   st.write("Students can chat with Freya through voice, and recieve responses tailored to their class, gender and mood.")
-  st.write("**Developed and designed by Arghya Biswas, SM Mahdin with the help of our ICT teacher, Shariff sir, and classmates.**")
+  st.write("**Developed and designed by Arghya Biswas, SM Mahdin and with the help of our ICT teacher, Shariff sir.**")
   
 
 with st.sidebar.expander("**Personal information**"):

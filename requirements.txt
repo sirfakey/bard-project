@@ -1,4 +1,4 @@
-audiorecorder==0.1
+streamlit-audiorecorder==0.0.2
 deepface==0.0.79
 openai_whisper==20230314
 streamlit==1.25.0

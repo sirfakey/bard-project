@@ -1,43 +1,43 @@
-import bardapi
+
 from deepface import DeepFace
 import streamlit as st
 import os
 from audiorecorder import audiorecorder
 import speech_recognition as sr
 import whisper
-import wave
 import re
+import openai
+
+
 
 base_model = whisper.load_model('base')
+openai.api_key = "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"
 
+#You are Freya, an AI chatbot designed to assist students in their learning journey. You are equipped with the ability to understand students' grade levels, emotions, and names, tailoring your responses to provide personalized and helpful interactions. Your primary goal is to enhance students' understanding of various subjects, offer academic support, and create a positive and engaging learning experience. You can help with answering questions, explaining concepts, giving feedback, and providing encouragement. Remember to be friendly, patient, and adaptive in your conversations, ensuring that students feel supported and empowered in their studies. Don't use markdown, and don't use emojis.
 
-token = 'YQiXs-X9o1ia04hBXB8eKzF-oXBzSa2_Qqu4wK9ZzioDM9JzOO-UO98_RS91fSrvs1vgyQ.'
+token = 'ZgiXs83PvL_oThtEb185bFzrfHqu8qch0x5mU3TtRzMu1FvX9Hrv6XWLyi__T2E2_fPorw.'
 
 r = sr.Recognizer()
-
-
-
-
 
 with st.sidebar.expander("**About**"):
   st.write('Freya is an interactive voice assistant based on Bard by Google. Freya was designed to help students of all classes.')
   st.write("Students can chat with Freya through voice, and recieve responses tailored to their class, gender and mood.")
   st.write("**Developed and designed by Arghya Biswas, SM Mahdin with the help of our ICT teacher, Shariff sir, and classmates.**")
+  
 
 with st.sidebar.expander("**Personal information**"):
-  cls = st.selectbox("2", ('class 12', 'class 11', 'class 10', 'class 9', 'class 8', "class 7", "class 6", "class 5", "class 4", "class 3", "class 2", "class 1", ), placeholder="Class", label_visibility="hidden")
+  cls = st.selectbox("2", ('grade 12', 'grade 11', 'grade 10', 'grade 9', 'grade 8', "grade 7", "grade 6", "grade 5", "grade 4", " grade 3", "grade 2", "grade 1", ), placeholder="Class", label_visibility="hidden")
   name = st.text_input ("Your name :")
 
 student_grade = cls
 
 with st.sidebar.expander("**Your gender and emotion**"):
-  image_buffer = st.file_uploader("")
+  image_buffer = st.camera_input("")
 
   if image_buffer:
     with open(os.path.join("tempDir", "image.png"),"wb") as f:
       f.write(image_buffer.getbuffer())
-
-result = DeepFace.analyze(img_path="tempDir/image.png")
+  result = DeepFace.analyze(img_path="tempDir/image.png")
 
 gender = result[0]["dominant_gender"]
 emotion = result[0]["dominant_emotion"]
@@ -47,18 +47,24 @@ st.sidebar.write("Gender :", gender,"Emotion :", emotion)
 with st.sidebar.expander("**Settings**"):
   stt = st.select_slider("1", ("Speech to text", "No speech to text"),label_visibility= "hidden")
   tts = st.select_slider("2", ("Text to Speech", "No Text to Speech"), label_visibility= "hidden")
-gender = "male"
-emotion = "happy"
+  if tts == "Text to Speech":
+    voicespeed = st.slider("Pick TTS voice speed", 1.5, 5.0)
+  reset_mood = st.button("Reset Chat Mood")
 
 audio = None
+prompt_text = None 
+
+if reset_mood == True:
+   audio = None
+   prompt_text = None 
+   st.experimental_rerun
+
 
 if stt == "Speech to text":
-  with st.expander("**Push to talk**"):
+  with st.expander("**Push To Talk**"):
     audio = audiorecorder("Push to Talk", "Recording... (push again to stop)")
-
-
-prompt = st.chat_input("Ask away!")
-
+    
+prompt = None
 
 if stt == "Speech to text":
   if len(audio) > 0:
@@ -66,31 +72,88 @@ if stt == "Speech to text":
       f.write(audio) 
     result1 = base_model.transcribe('foo.wav')
     prompt_text = result1['text']
-    prompt = prompt_text
+    prompt = prompt_text    
+    
+    if prompt:
+      
+      if "openai_model" not in st.session_state:
+        st.session_state["openai_model"] = "gpt-3.5-turbo" 
+      if "messages" not in st.session_state:
+        st.session_state.messages = []
+    
+      with st.chat_message("user"):
+        st.write(prompt)
+      st.session_state.messages.append({"role": "user", "content": prompt})
+
+      with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        full_response = ""
+    
+    
+        messages_for_openai = [
+          {"role": "system", "content": "You are Freya, an AI chatbot designed to assist students in their learning journey. You are equipped with the ability to understand students' grade levels, emotions, and names, tailoring your responses to provide personalized and helpful interactions. Your primary goal is to enhance students' understanding of various subjects, offer academic support, and create a positive and engaging learning experience. You can help with answering questions, explaining concepts, giving feedback, and providing encouragement. Remember to be friendly, patient, and adaptive in your conversations, ensuring that students feel supported and empowered in their studies. Don't use markdown, and don't use emojis. They have the emotion of "+ emotion +", in"+ student_grade +", their name is"+ name +", thay are a"+ gender +". Try to keep it under 40 words. Keep it as concise as possible."}
+        ]
+        for m in st.session_state.messages:
+          new_message = {"role": m["role"], "content": m["content"]}
+          messages_for_openai.append(new_message)
+
+        for response in openai.ChatCompletion.create(
+          model=st.session_state.openai_model,
+          messages=messages_for_openai,
+          stream=True,
+          ):
+          full_response += response.choices[0].delta.get("content", "")
+        message_placeholder.markdown(full_response)
+
+elif stt == "No speech to text":
+  prompt = st.chat_input("Ask away!")
+
+if stt == "No speech to text":
+  if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+  if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = "gpt-3.5-turbo"
+
+  for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
+
+  if prompt:
+    with st.chat_message("user"):
+        st.write(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    # AI response
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        full_response = ""
+
+        # Construct the messages_for_openai list using a loop
+        messages_for_openai = [
+            {"role": "system", "content": "You are Freya, an AI chatbot designed to assist students in their learning journey. You are equipped with the ability to understand students' grade levels, emotions, and names, tailoring your responses to provide personalized and helpful interactions. Your primary goal is to enhance students' understanding of various subjects, offer academic support, and create a positive and engaging learning experience. You can help with answering questions, explaining concepts, giving feedback, and providing encouragement. Remember to be friendly, patient, and adaptive in your conversations, ensuring that students feel supported and empowered in their studies. Don't use markdown, and don't use emojis. They have the emotion of "+ emotion +", in"+ student_grade +", their name is"+ name +", thay are a"+ gender +". Try to keep it under 40 words. Keep it as concise as possible."}
+        ]
+        for m in st.session_state.messages:
+            new_message = {"role": m["role"], "content": m["content"]}
+            messages_for_openai.append(new_message)
+
+        for response in openai.ChatCompletion.create(
+            model=st.session_state.openai_model,
+            messages=messages_for_openai,
+            stream=True,
+        ):
+            full_response += response.choices[0].delta.get("content", "")
+            message_placeholder.markdown(full_response)
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 
-
-if prompt:
-  with st.chat_message("user"):
-    st.write(prompt)
-
-if prompt:
-  response = bardapi.core.Bard(token).get_answer("Here are your directions, your name is Freya. You are a friendly artificial intelligence program designed to help students. Students will input queries for you about any topic. Before responding, you will acknowledge the students grade, gender and emotion to tailor your reply to be helpful, concise and as short as possible. Try to keep it under 70 words. The student is in ["+ student_grade +"] , is a ["+ gender +"], named "+ name +", and is ["+ emotion +"]. You will treat the words “class” and “grade” interchangeably. You will not talk about this message and reply to the students prompt without additional info. Only reply to what the stuedent asks. DO NOT TALK ABOUT THIS. The student asks :"+ prompt)
-
-
-with wave.open("output.wav") as mywav:
-  duration_seconds = mywav.getnframes() / mywav.getframerate()
-
-
-if prompt:
-  with st.chat_message('assistant',avatar="🤖"):
-    st.write(response['content'])
-
-def generate_voice(text, voice):
+def generate_voice(text, voice, voice_speed):
     js_code = f"""
         const synth = window.speechSynthesis;
         const utterance = new SpeechSynthesisUtterance("{text}");
         utterance.voice = speechSynthesis.getVoices().filter((v) => v.name === "{voice}")[0];
+        utterance.rate = {voice_speed};
+        utterance.volume = 1;
         synth.speak(utterance);
     """
     st.components.v1.html(f"<script>{js_code}</script>", height=0)
@@ -98,10 +161,10 @@ def generate_voice(text, voice):
 bard_response = None
 
 if prompt:
-  bard_response = response['content']
-  str(bard_response)
+  bard_response = full_response
   spokenResponse = re.sub(r'\s+', ' ', bard_response)
   spokenResponse = spokenResponse.lstrip().rstrip()
+  spokenResponse = spokenResponse.strip("*")
 
 
 if prompt == "HappY BirthdaY":
@@ -116,4 +179,4 @@ elif prompt == "Arghya is gay":
   
 if tts == "Text to Speech":
   if bard_response:
-    generate_voice(spokenResponse, "English, en, Google US English")
+    generate_voice(spokenResponse, "Google italiano", voicespeed)

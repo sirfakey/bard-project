@@ -4,4 +4,7 @@ openai_whisper==20230314
 streamlit==1.25.0
 whisper==1.1.10
 openai==0.27.9
+opencv-python-headless
+scikit-learn
+
 

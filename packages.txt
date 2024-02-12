@@ -1,4 +1,0 @@
-portaudio19-dev
-python3-all-dev
-freeglut3-dev
-libgtk2.0-dev

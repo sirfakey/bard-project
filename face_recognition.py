@@ -12,14 +12,14 @@ prompt = None
 
 
 base_model = whisper.load_model('base')
-openai.api_key = "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"
+openai.api_key = "TOKEN"
 
 # You are Freya, an AI chatbot designed to assist students in their learning journey. You are equipped with the ability to understand students' grade levels, emotions, and names, tailoring your responses to provide personalized and helpful interactions. Your primary goal is to enhance students' understanding of various subjects, offer academic support, and create a positive and engaging learning experience. You can help with answering questions, explaining concepts, giving feedback, and providing encouragement. Remember to be friendly, patient, and adaptive in your conversations, ensuring that students feel supported and empowered in their studies. Don't use markdown, and don't use emojis.
 
 token = 'ZgiXs83PvL_oThtEb185bFzrfHqu8qch0x5mU3TtRzMu1FvX9Hrv6XWLyi__T2E2_fPorw.'
 
 with st.sidebar.expander("**About**"):
-    st.write('Freya is an interactive voice assistant based on Bard by Google. Freya was designed to help students of all classes.')
+    st.write('Freya is an interactive voice assistant based on ChatGPT by OpenAI. Freya was designed to help students of all classes.')
     st.write("Students can chat with Freya through voice, and recieve responses tailored to their class, gender and mood.")
     st.write("**Developed and designed by Arghya Biswas, SM Mahdin and with the help of our ICT teacher, Shariff sir.**")
 
@@ -53,7 +53,7 @@ with st.sidebar.expander("**Settings**"):
         voicespeed = st.slider("Pick TTS voice speed", 1.5, 5.0)
     reset_mood = st.button("Reset Chat Mood")
 
-audio_bytes = None
+audio = "a"
 prompt_text = None
 
 if reset_mood == True:
@@ -63,10 +63,8 @@ if reset_mood == True:
 
 
 if stt == "Speech to text":
-    if not 'audio' in st.session_state:
-        st.session_state.audio = None
     with st.expander("**Push To Talk**"):
-        st.session_state.audio = audio_recorder(
+        audio = audio_recorder(
             text="",
             recording_color="#e8b62c",
             neutral_color="#6aa36f",
@@ -75,13 +73,13 @@ if stt == "Speech to text":
         )
 
 if stt == "Speech to text":
-    if st.session_state.audio:
+    if len(audio) > 0:
         with open("foo1.wav", "wb") as f:
-            f.write(st.session_state.audio)
+            f.write(audio)
     result1 = base_model.transcribe('foo1.wav')
     prompt_text = result1['text']
     prompt = prompt_text
-    st.session_state.audio = None
+    audio = None
     if prompt:
 
         if "openai_model" not in st.session_state:

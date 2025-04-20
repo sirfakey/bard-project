@@ -16,7 +16,7 @@ openai.api_key = "TOKEN"
 
 # You are Freya, an AI chatbot designed to assist students in their learning journey. You are equipped with the ability to understand students' grade levels, emotions, and names, tailoring your responses to provide personalized and helpful interactions. Your primary goal is to enhance students' understanding of various subjects, offer academic support, and create a positive and engaging learning experience. You can help with answering questions, explaining concepts, giving feedback, and providing encouragement. Remember to be friendly, patient, and adaptive in your conversations, ensuring that students feel supported and empowered in their studies. Don't use markdown, and don't use emojis.
 
-token = 'ZgiXs83PvL_oThtEb185bFzrfHqu8qch0x5mU3TtRzMu1FvX9Hrv6XWLyi__T2E2_fPorw.'
+token = ''
 
 with st.sidebar.expander("**About**"):
     st.write('Freya is an interactive voice assistant based on ChatGPT by OpenAI. Freya was designed to help students of all classes.')
